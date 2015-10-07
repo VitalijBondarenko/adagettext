@@ -73,6 +73,8 @@ procedure AdaGettext is
 
    procedure Usage is
    begin
+      Put_Line (Program_Name & " version " & Program_Version);
+      New_Line;
       Put_Line ("Usage : " & Program_Name & " [options]");
       New_Line;
       Put_Line
@@ -110,8 +112,12 @@ begin  --  Start AdaGettext
    end loop;
 
    if Base_Name (Current_Directory) /= PO_Dirname then
-      Put_Line (Program_Name & ": Unable to proceed." & ASCII.LF &
-                  "Make sure to run this program inside the po directory.");
+      Put_Line
+        (Program_Name & ": Unable to proceed." &
+           ASCII.LF &
+           "Make sure to run this program inside the po directory." &
+           ASCII.LF &
+           "Try 'adagettext --help' for more information.");
       return;
    end if;
 
