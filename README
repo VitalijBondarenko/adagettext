@@ -1,0 +1,13 @@
+AdaGettext - extract gettext strings from Ada source
+
+Usage : adagettext [options]
+
+Extract translatable strings from given input Ada source files
+and generate po template (.pot) only.
+The result is printed to outfile, if it is given.
+Otherwise standard output is used.
+
+The following options are available:
+   -h, --help  print this help and exit
+   -o outfile  write output to specified file
+   -n          don't write header to output file
