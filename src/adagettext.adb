@@ -47,7 +47,7 @@ procedure AdaGettext is
 
    Prog            : String := Command_Name;
    Program_Name    : String := Base_Name (Prog);
-   Program_Version : String := "1.0";
+   Program_Version : String := "1.1";
 
    PO_Dirname   : String := "po";
    POTFILES_in  : String := "POTFILES.in";
@@ -134,29 +134,37 @@ begin  --  Start AdaGettext
       if Src_Filename /= Null_Unbounded_String then
          Src_Filename := "../" & Src_Filename;
          Src_Line_No := 0;
-         Open (Src_File, In_File, To_String (Src_Filename));
 
-         while not End_Of_File (Src_File) loop
-            Get_Line (Src_File, Src_Line);
-            Src_Line_No := Src_Line_No + 1;
-            L10n_Line := Get_L10n_String (L10n_Matcher, Src_Line);
+         begin
+            Open (Src_File, In_File, To_String (Src_Filename));
 
-            if L10n_Line /= Null_Unbounded_String then
-               Str_Cursor := L10n_Strings.Find (L10n_Line);
+            while not End_Of_File (Src_File) loop
+               Get_Line (Src_File, Src_Line);
+               Src_Line_No := Src_Line_No + 1;
+               L10n_Line := Get_L10n_String (L10n_Matcher, Src_Line);
 
-               if  Str_Cursor = L10n_String_Table.No_Element then
-                  L10n_Strings.Insert
-                    (L10n_Line, "#: " & Src_Filename & ":" & Src_Line_No'Img);
-               else
-                  Temp_Line := L10n_Strings.Element (L10n_Line);
-                  L10n_Strings.Replace_Element
-                    (Str_Cursor, Temp_Line & ASCII.LF &
-                       "#: " & Src_Filename & ":" & Src_Line_No'Img);
+               if L10n_Line /= Null_Unbounded_String then
+                  Str_Cursor := L10n_Strings.Find (L10n_Line);
+
+                  if  Str_Cursor = L10n_String_Table.No_Element then
+                     L10n_Strings.Insert
+                       (L10n_Line, "#: " & Src_Filename & ":" & Src_Line_No'Img);
+                  else
+                     Temp_Line := L10n_Strings.Element (L10n_Line);
+                     L10n_Strings.Replace_Element
+                       (Str_Cursor, Temp_Line & ASCII.LF &
+                          "#: " & Src_Filename & ":" & Src_Line_No'Img);
+                  end if;
                end if;
-            end if;
-         end loop;
+            end loop;
 
-         Close (Src_File);
+            Close (Src_File);
+         exception
+            when others =>
+               if Is_Open (Src_File) then
+                  Close (Src_File);
+               end if;
+         end;
       end if;
    end loop;
 
