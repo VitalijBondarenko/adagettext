@@ -43,18 +43,15 @@ package L10n_Table is
    L10n_Matcher_Default : constant Pattern_Matcher :=
      Compile (L10n_Pattern_Default);
 
-   function Get_L10n_String
-     (Pattern     : Pattern_Matcher;
-      Source_Line : String) return String;
-   function Get_L10n_String
-     (Pattern     : Pattern_Matcher;
-      Source_Line : String) return Unbounded_String;
-   function Get_L10n_String
-     (Pattern     : Pattern_Matcher;
-      Source_Line : Unbounded_String) return Unbounded_String;
-   function Get_L10n_String
-     (Pattern     : String;
-      Source_Line : String) return String;
+   Minus_Pattern    : constant String := "-"".*""";
+   Gettext_Pattern  : constant String := "Gettext[[:space:]]*\("".*""\)";
+   Dgettext_Pattern : constant String := "Dgettext[[:space:]]*\("".*"",.*"".*""\)";
+
+   function Get_L10n_String (Source_Line : String) return String;
+   function Get_L10n_String (Source_Line : String) return Unbounded_String;
+   function Get_L10n_String (Source_Line : Unbounded_String) return String;
+   function Get_L10n_String (Source_Line : Unbounded_String)
+                             return Unbounded_String;
    --  Return a string matched to the Pattern
 
    Pot_File_Header : constant String :=

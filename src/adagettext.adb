@@ -45,17 +45,15 @@ procedure AdaGettext is
    package L10nt renames L10n_Table.L10n_String_Table;
    use L10nt;
 
-   Prog            : String := Command_Name;
-   Program_Name    : String := Base_Name (Prog);
-   Program_Version : String := "1.1";
+   Prog            : constant String := Command_Name;
+   Program_Name    : constant String := Base_Name (Prog);
+   Program_Version : constant String := "1.2";
 
-   PO_Dirname   : String := "po";
-   POTFILES_in  : String := "POTFILES.in";
+   PO_Dirname   : constant String := "po";
+   POTFILES_in  : constant String := "POTFILES.in";
    Pot_File_In  : File_Type;
    Write_Header : Boolean := True;
 
-   L10n_Pattern : String := L10n_Pattern_Default;
-   L10n_Matcher : Pattern_Matcher := Compile (L10n_Pattern);
    L10n_Strings : L10n_String_Table.Map;
    Str_Cursor   : L10n_String_Table.Cursor;
    Src_File     : File_Type;
@@ -113,11 +111,9 @@ begin  --  Start AdaGettext
 
    if Base_Name (Current_Directory) /= PO_Dirname then
       Put_Line
-        (Program_Name & ": Unable to proceed." &
-           ASCII.LF &
-           "Make sure to run this program inside the po directory." &
-           ASCII.LF &
-           "Try 'adagettext --help' for more information.");
+        (Program_Name & ": Unable to proceed." & ASCII.LF
+         & "Make sure to run this program inside the po directory." & ASCII.LF
+         & "Try 'adagettext --help' for more information.");
       return;
    end if;
 
@@ -141,19 +137,21 @@ begin  --  Start AdaGettext
             while not End_Of_File (Src_File) loop
                Get_Line (Src_File, Src_Line);
                Src_Line_No := Src_Line_No + 1;
-               L10n_Line := Get_L10n_String (L10n_Matcher, Src_Line);
+               L10n_Line := Get_L10n_String (Src_Line);
 
                if L10n_Line /= Null_Unbounded_String then
                   Str_Cursor := L10n_Strings.Find (L10n_Line);
 
-                  if  Str_Cursor = L10n_String_Table.No_Element then
+                  if Str_Cursor = L10n_String_Table.No_Element then
                      L10n_Strings.Insert
-                       (L10n_Line, "#: " & Src_Filename & ":" & Src_Line_No'Img);
+                       (L10n_Line,
+                        "#: " & Src_Filename & ":" & Src_Line_No'Img);
                   else
                      Temp_Line := L10n_Strings.Element (L10n_Line);
                      L10n_Strings.Replace_Element
-                       (Str_Cursor, Temp_Line & ASCII.LF &
-                          "#: " & Src_Filename & ":" & Src_Line_No'Img);
+                       (Str_Cursor,
+                        Temp_Line & ASCII.LF
+                        & "#: " & Src_Filename & ":" & Src_Line_No'Img);
                   end if;
                end if;
             end loop;
@@ -189,10 +187,16 @@ exception
    when Invalid_Switch    =>
       Put_Line (Program_Name & ": " & "Invalid switch " & Full_Switch);
    when Invalid_Parameter =>
-      Put_Line (Program_Name & ": " &
-                  "Invalid or missing parameter for -" & Full_Switch);
+      Put_Line (Program_Name & ": "
+                & "Invalid or missing parameter for -" & Full_Switch);
    when E : others        =>
-      Close (Pot_File_In);
-      Close (Src_File);
+      if Is_Open (Pot_File_In) then
+         Close (Pot_File_In);
+      end if;
+
+      if Is_Open (Src_File) then
+         Close (Src_File);
+      end if;
+
       Put_Line (Program_Name & ": " & Exception_Message (E));
 end AdaGettext;

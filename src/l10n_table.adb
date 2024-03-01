@@ -35,58 +35,109 @@ package body L10n_Table is
    -- Get_L10n_String --
    ---------------------
 
-   function Get_L10n_String
-     (Pattern : Pattern_Matcher; Source_Line : String) return String
+   function Get_L10n_String (Source_Line : String) return String
    is
-      Bracket_Index : Natural;
-      Minus_Index   : Natural;
-      First         : Positive;
-      Last          : Positive;
-      Found         : Boolean;
-      Result        : Match_Array (0 .. 0);
-
+      Paren_Left_Idx : Natural;
+      Minus_Idx      : Natural;
+      Quotedbl_Idx   : Natural;
+      Comma_Idx      : Natural;
+      First          : Positive;
+      Last           : Positive;
+      Found          : Boolean;
+      Result         : Match_Array (0 .. 0);
    begin
-      Match (Pattern, Source_Line, Result);
-      Found := not (Result (0) = No_Match);
+      --  "-"
+      Match (Minus_Pattern, Source_Line, Result);
 
-      if Found then
+      if Result (0) /= No_Match then
+         Found := True;
          First := Result (0).First;
          Last := Result (0).Last;
-         Bracket_Index := Index (Source_Line (First .. Last), "(");
-         Minus_Index := Index (Source_Line (First .. Last), "-");
+         Paren_Left_Idx := Index (Source_Line (First .. Last), "(");
+         Minus_Idx := Index (Source_Line (First .. Last), "-");
 
-         if Bracket_Index > 0 and (Bracket_Index - Minus_Index) in 2 .. 3 then
-            First := Bracket_Index + 1;
-         elsif Minus_Index > 0 then
-            First := Minus_Index + 1;
+         if Paren_Left_Idx > 0 and (Paren_Left_Idx - Minus_Idx) in 2 .. 3 then
+            First := Paren_Left_Idx + 1;
+         elsif Minus_Idx > 0 then
+            First := Minus_Idx + 1;
          end if;
-
-         return Source_Line (First .. Last);
       end if;
 
-      return "";
+      --  "Gettext"
+      if not Found then
+         Match (Gettext_Pattern, Source_Line, Result);
+
+         if Result (0) /= No_Match then
+            Found := True;
+            First := Result (0).First;
+            Last := Result (0).Last;
+            Paren_Left_Idx := Index (Source_Line (First .. Last), "(");
+            Quotedbl_Idx := Index (Source_Line (First .. Last), """");
+
+            if Paren_Left_Idx > 0 and Quotedbl_Idx > 0 then
+               First := Quotedbl_Idx;
+               Quotedbl_Idx := Index (Source_Line (First + 1 .. Last), """");
+               Last := Quotedbl_Idx;
+            end if;
+         end if;
+      end if;
+
+      --  "Dgettext"
+      if not Found then
+         Match (Dgettext_Pattern, Source_Line, Result);
+
+         if Result (0) /= No_Match then
+            Found := True;
+            First := Result (0).First;
+            Last := Result (0).Last;
+            Paren_Left_Idx := Index (Source_Line (First .. Last), "(");
+            Comma_Idx := Index (Source_Line (First .. Last), ",");
+
+            if Paren_Left_Idx > 0 and Comma_Idx > 0 then
+               Quotedbl_Idx := Index (Source_Line (Comma_Idx .. Last), """");
+               First := Quotedbl_Idx;
+               Quotedbl_Idx := Index (Source_Line (First + 1 .. Last), """");
+               Last := Quotedbl_Idx;
+            end if;
+         end if;
+      end if;
+
+      return Source_Line (First .. Last);
+
+   exception
+      when others => return "";
+end Get_L10n_String;
+
+   ---------------------
+   -- Get_L10n_String --
+   ---------------------
+
+   function Get_L10n_String (Source_Line : String) return Unbounded_String
+   is
+   begin
+      return To_Unbounded_String (Get_L10n_String (Source_Line));
    end Get_L10n_String;
 
-   function Get_L10n_String
-     (Pattern     : Pattern_Matcher;
-      Source_Line : String) return Unbounded_String is
-   begin
-      return To_Unbounded_String (Get_L10n_String (Pattern, Source_Line));
-   end Get_L10n_String;
+   ---------------------
+   -- Get_L10n_String --
+   ---------------------
 
    function Get_L10n_String
-     (Pattern     : Pattern_Matcher;
-      Source_Line : Unbounded_String) return Unbounded_String is
+     (Source_Line : Unbounded_String) return String
+   is
    begin
-      return To_Unbounded_String
-        (Get_L10n_String (Pattern, To_String (Source_Line)));
+      return Get_L10n_String (To_String (Source_Line));
    end Get_L10n_String;
 
+   ---------------------
+   -- Get_L10n_String --
+   ---------------------
+
    function Get_L10n_String
-     (Pattern     : String;
-      Source_Line : String) return String is
+     (Source_Line : Unbounded_String) return Unbounded_String
+   is
    begin
-      return Get_L10n_String (Compile (Pattern), Source_Line);
+      return Get_L10n_String (To_String (Source_Line));
    end Get_L10n_String;
 
 end L10n_Table;

@@ -69,7 +69,7 @@ package body Message_Dialogs is
 
       if Detail /= "" then
          Set_Markup (MD, "<b>" & Message & "</b>");
-         Gtk_New (Expander, -"Details");
+         Gtk_New (Expander, Gettext ("Details"));
          Gtk_New (Label, Detail);
          Set_Line_Wrap (Label, True);
          Add (Expander, Label);
@@ -89,7 +89,7 @@ package body Message_Dialogs is
       Msg    : UTF8_String;
       Msg_2  : UTF8_String := "";
       Detail : UTF8_String := "";
-      Title  : UTF8_String := -"Confirmation") return Boolean
+      Title  : UTF8_String := Dgettext ("", "Confirmation")) return Boolean
    is
       MD : Gtk_Message_Dialog;
       R  : Gtk_Response_Type;
